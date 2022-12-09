@@ -23,6 +23,12 @@ const val E = ""
 private fun findPositionOfElfWithMostCalories(input: List<String>): Int {
     val tracker = ElfCalorieTracker()
 
+    processInput(tracker, input)
+
+    return tracker.sumOfTopThreeCalorieAmounts()
+}
+
+private fun processInput(tracker: ElfCalorieTracker, input: List<String>) {
     for (calories in input) {
         if (calories == E) {
             tracker.moveToNextElf()
@@ -31,19 +37,14 @@ private fun findPositionOfElfWithMostCalories(input: List<String>): Int {
 
         tracker.addCaloriesToSum(calories)
     }
-
-    return tracker
-        .finalCalories()
-        .sortedDescending()
-        .take(3)
-        .sum()
 }
+
+
 
 class ElfCalorieTracker(
     var currentSum: Int = 0,
     var caloriesList: MutableList<Int> = mutableListOf()
 ) {
-
 
     fun moveToNextElf() {
         caloriesList.add(currentSum)
@@ -55,5 +56,10 @@ class ElfCalorieTracker(
         currentSum += calories.toInt()
     }
 
-    fun finalCalories(): MutableList<Int> = caloriesList.also { it.add(currentSum) }
+    fun sumOfTopThreeCalorieAmounts(): Int =
+        caloriesList
+            .also { it.add(currentSum) }
+            .sortedDescending()
+            .take(3)
+            .sum()
 }

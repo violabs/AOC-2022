@@ -22,6 +22,12 @@ const val E = ""
 private fun findPositionOfElfWithMostCalories(input: List<String>): Int {
     val tracker = ElfCalorieTracker()
 
+    processInput(tracker, input)
+
+    return tracker.highestCalories
+}
+
+private fun processInput(tracker: ElfCalorieTracker, input: List<String>) {
     for (calories in input) {
         if (calories == E) {
             tracker.moveToNextElf()
@@ -30,15 +36,12 @@ private fun findPositionOfElfWithMostCalories(input: List<String>): Int {
 
         tracker.addCaloriesToSum(calories)
     }
-
-    return tracker.highestCalories
 }
 
 class ElfCalorieTracker(
     var currentSum: Int = 0,
     var highestCalories: Int = 0,
 ) {
-
 
     fun moveToNextElf() {
         if (currentSum > highestCalories) updateHighestCalories()
