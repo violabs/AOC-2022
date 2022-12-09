@@ -3,7 +3,8 @@ package day01
 import readInput
 
 fun main() {
-    test("day-01-test-input-01", 4)
+    test("day-01-test-input-01", 24000)
+    test("day-01-actual-test-input", 67027)
 }
 
 private fun test(filename: String, expected: Int) {
@@ -31,27 +32,23 @@ private fun findPositionOfElfWithMostCalories(input: List<String>): Int {
         tracker.addCaloriesToSum(calories)
     }
 
-    return tracker.positionWithHighestCalories
+    return tracker.highestCalories
 }
 
 class ElfCalorieTracker(
     var currentSum: Int = 0,
-    var position: Int = 1,
     var highestCalories: Int = 0,
-    var positionWithHighestCalories: Int = 1
 ) {
 
 
     fun moveToNextElf() {
         if (currentSum > highestCalories) updateHighestCalories()
 
-        position++
         currentSum = 0
     }
 
     private fun updateHighestCalories() {
         highestCalories = currentSum
-        positionWithHighestCalories = position
     }
 
     fun addCaloriesToSum(calories: String) {
