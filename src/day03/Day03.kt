@@ -5,7 +5,6 @@ import readInput
 fun main() {
     test1("day-03-test-input-01", 157)
     test2("day-03-test-input-01", 70)
-    test2("day-03-actual-test-input", 70)
 }
 
 private fun test1(filename: String, expected: Int) {
