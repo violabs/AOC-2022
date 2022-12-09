@@ -4,13 +4,14 @@ package day02
 import readInput
 
 fun main() {
-    test("day-02-test-input-01", 15)
+    test1("day-02-test-input-01", 15)
+    test2("day-02-test-input-01", 12)
 }
 
-private fun test(filename: String, expected: Int) {
+private fun test1(filename: String, expected: Int) {
     val input = readInput("day02/$filename")
 
-    val actual: Int = runGame(input)
+    val actual: Int = runGuessingGame(input)
 
     println("EXPECT: $expected")
     println("ACTUAL: $actual")
@@ -18,13 +19,18 @@ private fun test(filename: String, expected: Int) {
     check(expected == actual)
 }
 
-interface ScoreFactor {
-    val score: Int
+private fun test2(filename: String, expected: Int) {
+    val input = readInput("day02/$filename")
+
+    val actual: Int = runKnownGame(input)
+
+    println("EXPECT: $expected")
+    println("ACTUAL: $actual")
+
+    check(expected == actual)
 }
 
-enum class Shape(
-    override val score: Int
-) : ScoreFactor {
+enum class Shape(val score: Int) {
     ROCK(1),
     PAPER(2),
     SCISSORS(3);
@@ -38,50 +44,99 @@ enum class Shape(
             "C" to SCISSORS,
             "Z" to SCISSORS
         )
+
+        fun findShape(opponentShape: Shape, outcome: Outcome): Shape = when (outcome) {
+            Outcome.LOSE -> findShapeForLose(opponentShape)
+            Outcome.DRAW -> opponentShape
+            Outcome.WIN -> findShapeForWin(opponentShape)
+        }
+
+        private fun findShapeForLose(opponentShape: Shape): Shape = when (opponentShape) {
+            ROCK -> SCISSORS
+            PAPER -> ROCK
+            SCISSORS -> PAPER
+        }
+
+        private fun findShapeForWin(opponentShape: Shape): Shape = when (opponentShape) {
+            ROCK -> PAPER
+            PAPER -> SCISSORS
+            SCISSORS -> ROCK
+        }
     }
 }
 
-enum class Outcome(override val score: Int) : ScoreFactor {
+enum class Outcome(val score: Int) {
     LOSE(0),
     DRAW(3),
     WIN(6);
 
     companion object {
-        fun findOutcome(opponentShape: Shape, selfShape: Shape): Outcome {
-            return when {
-                (opponentShape == Shape.PAPER && selfShape == Shape.ROCK) ||
-                (opponentShape == Shape.SCISSORS && selfShape == Shape.PAPER) ||
-                (opponentShape == Shape.ROCK && selfShape == Shape.SCISSORS) -> LOSE
+        val symbolMap: Map<String, Outcome> = mapOf(
+            "X" to LOSE,
+            "Y" to DRAW,
+            "Z" to WIN
+        )
 
-                (opponentShape == Shape.ROCK && selfShape == Shape.ROCK) ||
-                (opponentShape == Shape.PAPER && selfShape == Shape.PAPER) ||
-                (opponentShape == Shape.SCISSORS && selfShape == Shape.SCISSORS) -> DRAW
+        fun findOutcome(opponentShape: Shape, selfShape: Shape): Outcome = when (opponentShape) {
+            Shape.ROCK -> findOutcomeAgainstRock(selfShape)
+            Shape.PAPER -> findOutcomeAgainstPaper(selfShape)
+            Shape.SCISSORS -> findOutcomeAgainstScissors(selfShape)
+        }
 
-                (opponentShape == Shape.SCISSORS && selfShape == Shape.ROCK) ||
-                (opponentShape == Shape.ROCK && selfShape == Shape.PAPER) ||
-                (opponentShape == Shape.PAPER && selfShape == Shape.SCISSORS) -> WIN
+        private fun findOutcomeAgainstRock(selfShape: Shape): Outcome = when (selfShape) {
+            Shape.ROCK -> DRAW
+            Shape.PAPER -> WIN
+            Shape.SCISSORS -> LOSE
+        }
 
-                else -> throw Exception("Failed to compare shapes!")
-            }
+        private fun findOutcomeAgainstPaper(selfShape: Shape): Outcome = when (selfShape) {
+            Shape.ROCK -> LOSE
+            Shape.PAPER -> DRAW
+            Shape.SCISSORS -> WIN
+        }
+
+        private fun findOutcomeAgainstScissors(selfShape: Shape): Outcome = when (selfShape) {
+            Shape.ROCK -> WIN
+            Shape.PAPER -> LOSE
+            Shape.SCISSORS -> DRAW
         }
     }
 }
 
-private fun runGame(input: List<String>): Int {
+private fun runGuessingGame(input: List<String>): Int {
     return input
         .asSequence()
         .map { it.split(" ") }
-        .map(::Round)
-        .map(Round::score)
+        .map(::GuessedRound)
+        .map(GuessedRound::score)
         .sum()
 }
 
-class Round(selections: List<String>) {
+class GuessedRound(selections: List<String>) {
     private val opponentShape: Shape = Shape.symbolMap[selections[0]] ?: throw Exception("Missing opponent selection")
 
     private val myShape: Shape = Shape.symbolMap[selections[1]] ?: throw Exception("Missing my selection")
 
     private val outcome: Outcome = Outcome.findOutcome(opponentShape, myShape)
+
+    val score: Int = myShape.score + outcome.score
+}
+
+private fun runKnownGame(input: List<String>): Int {
+    return input
+        .asSequence()
+        .map { it.split(" ") }
+        .map(::KnownRound)
+        .map(KnownRound::score)
+        .sum()
+}
+
+class KnownRound(selections: List<String>) {
+    private val opponentShape: Shape = Shape.symbolMap[selections[0]] ?: throw Exception("Missing opponent selection")
+
+    private val outcome: Outcome = Outcome.symbolMap[selections[1]] ?: throw Exception("Missing outcome")
+
+    private val myShape: Shape = Shape.findShape(opponentShape, outcome)
 
     val score: Int = myShape.score + outcome.score
 }
